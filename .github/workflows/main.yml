@@ -1,0 +1,39 @@
+name: Build and Test with CSV Results
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up JDK 11 (or another language/tool)
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
+
+    - name: Build and Test
+      run: |
+        mvn clean install # or any other command to build and test your project
+        mvn test > result.log # capturing test results into a log file
+
+    - name: Convert results to CSV
+      run: |
+        # Assuming we use a simple command to convert test result to CSV format
+        echo "Test Name,Result" > test_results.csv
+        grep -E "Test passed|Test failed" result.log | sed 's/.*\(Test .*\): \(.*\)/\1,\2/' >> test_results.csv
+
+    - name: Upload test results CSV
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-results
+        path: test_results.csv
