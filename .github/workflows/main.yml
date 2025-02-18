@@ -15,7 +15,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '8'  # Corrected from `version` to `java-version`
-          distribution: 'adoptopenjdk'  # Corrected to 'adoptopenjdk', not 'adopt'
+          distribution: 'temurin'  # Corrected to 'temurin' for Adoptium JDK
 
       - name: Build and Test
         run: |
