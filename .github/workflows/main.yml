@@ -21,20 +21,38 @@ jobs:
       uses: actions/setup-java@v4
       with:
         java-version: '11'
-        distribution: 'adoptium'  # Use 'adoptium' instead of 'adoptopenjdk'
+        distribution: 'adoptium'  # Use 'adoptium' for Eclipse Adoptium
 
     - name: Build and Test
       run: |
+        # Run Maven clean and install first
         mvn clean install
-        mvn test > result.log
+        
+        # Run tests and capture both standard and error outputs
+        mvn test > result.log 2>&1
 
     - name: Convert results to CSV
       run: |
+        # Initialize CSV with headers
         echo "Test Name,Result" > test_results.csv
-        grep -E "Test passed|Test failed" result.log | sed 's/.*\(Test .*\): \(.*\)/\1,\2/' >> test_results.csv
+        
+        # Parse the result.log for relevant lines that indicate test results
+        grep -E "^\[INFO\] *Tests run:" result.log > test_summary.log
+        grep -E "^\[INFO\] *[A-Za-z]+.*(passed|failed)" result.log | \
+          sed -E 's/.*(Test .*)\s+\(.*\) (passed|failed)/\1,\2/' >> test_results.csv
+        
+        # Optionally, output the final CSV to verify content
+        cat test_results.csv
 
     - name: Upload test results CSV
       uses: actions/upload-artifact@v4
       with:
         name: test-results
         path: test_results.csv
+
+    # Optional: Store the test logs as an artifact for troubleshooting
+    - name: Upload Maven test log
+      uses: actions/upload-artifact@v4
+      with:
+        name: maven-test-log
+        path: result.log
